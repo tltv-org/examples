@@ -1,0 +1,5 @@
+*.key
+*.seed
+media/
+node_modules/
+__pycache__/
