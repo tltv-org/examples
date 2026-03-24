@@ -79,6 +79,73 @@ server/generate-stream.sh <example>/media
 Without a stream, the server still works -- metadata and node info are served
 normally, and the stream endpoint returns `503 stream_unavailable`.
 
+## Relay Servers
+
+A relay caches and re-serves public channels from an upstream origin. Unlike
+a channel server, a relay holds no private key -- it verifies signed metadata
+from upstream and serves it verbatim. Any node can relay a public channel
+without permission.
+
+| Example | Runtime | External Deps | Size |
+|---------|---------|---------------|------|
+| [relay/node/](relay/node/) | Node.js 18+ | None | ~110 lines |
+| [relay/python/](relay/python/) | Python 3.9+ | `cryptography` | ~170 lines |
+| [relay/go/](relay/go/) | Go 1.22+ | None | ~230 lines |
+
+### Quick Start
+
+```bash
+# 1. Start an origin server (terminal 1)
+server/generate-stream.sh server/node/media
+cd server/node && node server.mjs
+
+# 2. Start a relay pointing at the origin (terminal 2)
+cd relay/node && UPSTREAM=localhost:8000 node relay.mjs
+
+# 3. Verify the relay (terminal 3)
+tltv node localhost:9000 --local
+```
+
+### Running Each Example
+
+**Node.js** (zero dependencies):
+```bash
+UPSTREAM=localhost:8000 node relay/node/relay.mjs
+```
+
+**Python** (one dependency):
+```bash
+pip install cryptography
+UPSTREAM=localhost:8000 python relay/python/relay.py
+```
+
+**Go** (zero dependencies):
+```bash
+cd relay/go && UPSTREAM=localhost:8000 go run main.go
+```
+
+### What Each Relay Implements
+
+Every example is a conforming TLTV v1 relay node:
+
+- Discovers channels from upstream's `/.well-known/tltv`
+- Verifies Ed25519 signatures on metadata (no private key)
+- `GET /.well-known/tltv` -- Lists relayed channels (under `relaying`, not `channels`)
+- `GET /tltv/v1/channels/{id}` -- Cached signed metadata, served verbatim
+- `GET /tltv/v1/channels/{id}/stream.m3u8` -- Cached HLS manifest
+- `GET /tltv/v1/channels/{id}/*.ts` -- Cached HLS segments
+- `GET /tltv/v1/peers` -- Peer exchange (empty list)
+- Polls upstream for metadata (60s) and HLS content (2s)
+- Stops relaying channels that go private, on-demand, or retired
+- CORS headers and JSON error responses on all endpoints
+
+### Configuration
+
+| Env Var | Default | Description |
+|---------|---------|-------------|
+| `PORT` | `9000` | Listen port |
+| `UPSTREAM` | `localhost:8000` | Upstream origin host:port |
+
 ## Key Files
 
 All examples store keys as hex-encoded 32-byte Ed25519 seeds in `channel.key`.
