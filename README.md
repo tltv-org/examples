@@ -153,8 +153,11 @@ This is the same format `tltv-cli keygen` produces, so keys are interchangeable.
 
 ## Links
 
-- [Protocol Spec](https://spec.timelooptv.org) -- Full TLTV v1 specification
-- [tltv-cli](https://github.com/tltv-org/cli) -- CLI for interacting with the network
+- [timelooptv.org](https://timelooptv.org) — Project homepage
+- [Spec](https://spec.timelooptv.org) — Protocol specification
+- [Demo](https://demo.timelooptv.org) — Live demo
+- [GitHub](https://github.com/tltv-org) — All repositories
+- [tltv-cli](https://github.com/tltv-org/cli) — CLI for interacting with the network
 
 ## License
 
